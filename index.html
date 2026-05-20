@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b0f1a">
+<title>TriLog · Entrenamiento</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0b0f1a;
+  --surf: #111827;
+  --surf2: #1a2235;
+  --surf3: #212d42;
+  --b1: rgba(255,255,255,0.06);
+  --b2: rgba(255,255,255,0.11);
+  --b3: rgba(255,255,255,0.2);
+  --text: #e8edf5;
+  --muted: #7a8ba0;
+  --faint: #3d4f65;
+
+  --run: #ff6b35;   --run-d: rgba(255,107,53,0.12); --run-b: rgba(255,107,53,0.35);
+  --bike: #00d4aa;  --bike-d: rgba(0,212,170,0.12); --bike-b: rgba(0,212,170,0.35);
+  --swim: #4d9fff;  --swim-d: rgba(77,159,255,0.12); --swim-b: rgba(77,159,255,0.35);
+  --brick: #c084fc; --brick-d: rgba(192,132,252,0.12);
+
+  --r: 12px; --rs: 8px;
+  --mono: 'DM Mono', monospace;
+  --title: 'Bebas Neue', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--body);overflow:hidden;}
+body{display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;gap:12px;padding:12px 16px 10px;background:var(--surf);border-bottom:.5px solid var(--b1);flex-shrink:0;}
+.hdr-logo{font-family:var(--title);font-size:22px;letter-spacing:2px;background:linear-gradient(135deg,var(--run),var(--bike),var(--swim));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-sub{font-size:10px;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;}
+.hdr-date{margin-left:auto;text-align:right;}
+.hdr-date-day{font-family:var(--mono);font-size:12px;color:var(--text);}
+.hdr-date-full{font-size:10px;color:var(--muted);}
+
+/* ── TABS ── */
+.tabs{display:flex;background:var(--surf);border-bottom:.5px solid var(--b1);flex-shrink:0;}
+.tab{flex:1;padding:10px 0;font-size:11px;text-align:center;cursor:pointer;background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-.5px;font-family:var(--body);letter-spacing:.3px;transition:color .15s;}
+.tab.active{color:var(--text);border-bottom-color:var(--run);}
+.tab.active[data-sport="bike"]{border-bottom-color:var(--bike);}
+.tab.active[data-sport="swim"]{border-bottom-color:var(--swim);}
+
+/* ── VIEWS ── */
+.view{flex:1;overflow:hidden;display:none;flex-direction:column;}
+.view.active{display:flex;}
+.scroll{flex:1;overflow-y:auto;padding:14px 14px 80px;}
+.slbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px;}
+.slbl:first-child{margin-top:0;}
+.empty-h{text-align:center;color:var(--faint);font-size:13px;padding:3rem 0;}
+
+/* ── TODAY CARD ── */
+.today-card{border-radius:var(--r);border:.5px solid var(--b2);overflow:hidden;margin-bottom:10px;}
+.today-card-hdr{padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.sport-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sport-dot.run{background:var(--run);}
+.sport-dot.bike{background:var(--bike);}
+.sport-dot.swim{background:var(--swim);}
+.sport-dot.rest{background:var(--faint);}
+.today-card-title{font-size:14px;font-weight:600;flex:1;}
+.today-card-phase{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.today-card-body{padding:8px 14px 12px;border-top:.5px solid var(--b1);}
+.today-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+.btn-log{display:block;width:100%;margin-top:10px;padding:11px;border-radius:var(--rs);border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--body);letter-spacing:.3px;transition:opacity .15s;}
+.btn-log:active{opacity:.8;}
+.btn-log.run{background:var(--run);color:#fff;}
+.btn-log.bike{background:var(--bike);color:#0b0f1a;}
+.btn-log.swim{background:var(--swim);color:#fff;}
+.btn-log.multi{background:linear-gradient(135deg,var(--run),var(--bike));color:#fff;}
+.btn-log.generic{background:var(--surf3);color:var(--text);border:.5px solid var(--b2);}
+
+/* ── WEEK STRIP ── */
+.week-strip{display:flex;gap:4px;margin-bottom:14px;}
+.week-day{flex:1;border-radius:var(--rs);border:.5px solid var(--b1);padding:6px 3px;text-align:center;cursor:pointer;background:var(--surf2);transition:all .15s;}
+.week-day.today{border-color:var(--run);background:var(--run-d);}
+.week-day.has-entry{border-color:var(--b2);}
+.week-day-name{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+.week-day-num{font-size:14px;font-weight:600;color:var(--text);margin:1px 0;}
+.week-day-dot{height:4px;display:flex;gap:2px;justify-content:center;align-items:center;}
+.wd-dot{width:4px;height:4px;border-radius:50%;}
+
+/* ── QUICK STATS ── */
+.stats-row{display:flex;gap:8px;margin-bottom:14px;}
+.stat-box{flex:1;background:var(--surf2);border-radius:var(--rs);border:.5px solid var(--b1);padding:10px 12px;}
+.stat-val{font-family:var(--mono);font-size:18px;color:var(--text);line-height:1;}
+.stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
+.stat-box.run{border-top:2px solid var(--run);}
+.stat-box.bike{border-top:2px solid var(--bike);}
+.stat-box.swim{border-top:2px solid var(--swim);}
+
+/* ── FORM ── */
+.form-card{background:var(--surf);border-radius:var(--r);border:.5px solid var(--b2);overflow:hidden;margin-bottom:10px;}
+.form-hdr{padding:12px 14px;border-bottom:.5px solid var(--b1);display:flex;align-items:center;gap:10px;}
+.form-title{font-size:14px;font-weight:600;flex:1;}
+.form-body{padding:12px 14px;}
+.field-group{margin-bottom:10px;}
+.field-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block;}
+.field-input{width:100%;padding:9px 12px;border-radius:var(--rs);border:.5px solid var(--b2);background:var(--surf2);color:var(--text);font-size:14px;font-family:var(--mono);-webkit-appearance:none;appearance:none;}
+.field-input:focus{outline:none;border-color:var(--b3);}
+.field-input::placeholder{color:var(--faint);}
+.field-row{display:flex;gap:8px;}
+.field-row .field-group{flex:1;}
+.sport-select{display:flex;gap:6px;margin-bottom:10px;}
+.sport-btn{flex:1;padding:10px 6px;border-radius:var(--rs);border:.5px solid var(--b1);background:var(--surf2);color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--body);text-align:center;transition:all .15s;}
+.sport-btn.active.run{background:var(--run-d);border-color:var(--run-b);color:var(--run);}
+.sport-btn.active.bike{background:var(--bike-d);border-color:var(--bike-b);color:var(--bike);}
+.sport-btn.active.swim{background:var(--swim-d);border-color:var(--swim-b);color:var(--swim);}
+.btn-primary{width:100%;padding:13px;border-radius:var(--rs);border:none;background:var(--run);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--body);letter-spacing:.3px;margin-top:8px;transition:opacity .15s;}
+.btn-primary:active{opacity:.8;}
+.btn-primary.bike{background:var(--bike);color:#0b0f1a;}
+.btn-primary.swim{background:var(--swim);}
+.btn-secondary{width:100%;padding:11px;border-radius:var(--rs);border:.5px solid var(--b2);background:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--body);margin-top:6px;}
+
+/* ── SERIES BLOCK ── */
+.series-block{background:var(--surf3);border-radius:var(--rs);border:.5px solid var(--b1);padding:10px;margin-bottom:8px;}
+.series-hdr{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.series-num{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.btn-del-series{background:none;border:none;color:var(--faint);font-size:18px;cursor:pointer;margin-left:auto;line-height:1;}
+.btn-del-series:active{color:var(--run);}
+.btn-add-series{width:100%;padding:9px;border-radius:var(--rs);border:.5px dashed var(--b2);background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--body);margin-top:4px;}
+
+/* ── HISTORY ── */
+.hist-day{margin-bottom:18px;}
+.hist-day-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.hist-day-label::after{content:'';flex:1;height:.5px;background:var(--b1);}
+.hist-entry{background:var(--surf);border-radius:var(--r);border:.5px solid var(--b1);margin-bottom:8px;overflow:hidden;position:relative;}
+.hist-entry::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.hist-entry.run::before{background:var(--run);}
+.hist-entry.bike::before{background:var(--bike);}
+.hist-entry.swim::before{background:var(--swim);}
+.hist-entry-hdr{padding:10px 14px 10px 18px;display:flex;align-items:center;gap:8px;}
+.hist-sport-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.hist-sport-tag.run{background:var(--run-d);color:var(--run);border:.5px solid var(--run-b);}
+.hist-sport-tag.bike{background:var(--bike-d);color:var(--bike);border:.5px solid var(--bike-b);}
+.hist-sport-tag.swim{background:var(--swim-d);color:var(--swim);border:.5px solid var(--swim-b);}
+.hist-entry-name{font-size:13px;font-weight:500;flex:1;}
+.hist-entry-time{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.hist-metrics{display:flex;gap:6px;padding:0 18px 12px;flex-wrap:wrap;}
+.hist-metric{background:var(--surf2);border-radius:6px;padding:5px 10px;}
+.hist-metric-val{font-family:var(--mono);font-size:13px;color:var(--text);}
+.hist-metric-lbl{font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.3px;}
+.hist-series{padding:0 18px 10px;}
+.hist-series-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.hist-series-tbl th{color:var(--faint);font-weight:500;text-align:left;padding:3px 6px 3px 0;font-size:9px;text-transform:uppercase;}
+.hist-series-tbl td{color:var(--muted);padding:3px 6px 3px 0;font-family:var(--mono);font-size:11px;border-top:.5px solid var(--b1);}
+.hist-entry-del{background:none;border:none;color:var(--faint);font-size:16px;cursor:pointer;padding:2px 6px;}
+
+/* ── SCHEDULE ── */
+.sched-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.sched-nav-btn{background:none;border:.5px solid var(--b2);border-radius:var(--rs);color:var(--muted);font-size:18px;cursor:pointer;padding:4px 14px;line-height:1.4;}
+.sched-nav-label{flex:1;text-align:center;font-size:14px;font-weight:600;color:var(--text);}
+.sched-week{margin-bottom:14px;}
+.sched-day{border-radius:var(--r);border:.5px solid var(--b1);margin-bottom:6px;overflow:hidden;}
+.sched-day.today-sched{border-color:var(--run-b);}
+.sched-day-hdr{padding:9px 14px;display:flex;align-items:center;gap:10px;background:var(--surf2);}
+.sched-day-name{font-size:11px;font-weight:600;color:var(--text);width:80px;}
+.sched-day-date{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.sched-day-today-badge{font-size:9px;background:var(--run-d);color:var(--run);border:.5px solid var(--run-b);border-radius:4px;padding:1px 6px;margin-left:auto;}
+.sched-activity{padding:6px 14px;display:flex;align-items:center;gap:8px;border-top:.5px solid var(--b1);}
+.sched-sport-icon{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sched-sport-icon.run{background:var(--run);}
+.sched-sport-icon.bike{background:var(--bike);}
+.sched-sport-icon.swim{background:var(--swim);}
+.sched-sport-icon.rest{background:var(--faint);}
+.sched-act-txt{font-size:12px;color:var(--muted);flex:1;}
+.sched-act-type{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.sched-act-type.run{color:var(--run);}
+.sched-act-type.bike{color:var(--bike);}
+.sched-act-type.swim{color:var(--swim);}
+.sched-act-type.rest{color:var(--faint);}
+.sched-act-type.brick{color:var(--brick);}
+.sched-no-act{padding:8px 14px;font-size:11px;color:var(--faint);}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.82);z-index:2000;flex-direction:column;padding:14px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--surf);border-radius:var(--r);border:.5px solid var(--b2);display:flex;flex-direction:column;max-height:calc(100vh - 28px);overflow:hidden;}
+.modal-hdr{padding:14px 16px;border-bottom:.5px solid var(--b1);display:flex;align-items:center;flex-shrink:0;}
+.modal-title{font-size:15px;font-weight:600;flex:1;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;}
+.modal-body{flex:1;overflow-y:auto;padding:14px 16px;}
+.modal-footer{padding:12px 16px;border-top:.5px solid var(--b1);flex-shrink:0;}
+
+/* ── SCHED BUILDER MODAL ── */
+.sched-builder{margin-top:10px;}
+.sb-week-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;}
+.sb-day-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:.5px solid var(--b1);}
+.sb-day-name{font-size:11px;color:var(--muted);width:36px;flex-shrink:0;padding-top:2px;}
+.sb-day-acts{flex:1;display:flex;flex-direction:column;gap:6px;}
+.sb-act-row{display:flex;gap:6px;align-items:center;}
+.sb-sport-sel{flex:0 0 80px;padding:6px 8px;border-radius:var(--rs);border:.5px solid var(--b2);background:var(--surf3);color:var(--text);font-size:12px;font-family:var(--body);-webkit-appearance:none;appearance:none;}
+.sb-desc-inp{flex:1;padding:6px 8px;border-radius:var(--rs);border:.5px solid var(--b2);background:var(--surf3);color:var(--text);font-size:12px;font-family:var(--body);}
+.sb-del{background:none;border:none;color:var(--faint);font-size:16px;cursor:pointer;}
+.sb-add-btn{background:none;border:.5px dashed var(--b2);border-radius:var(--rs);color:var(--muted);font-size:11px;cursor:pointer;padding:4px 8px;font-family:var(--body);}
+
+/* ── PILL BADGE ── */
+.pill{display:inline-block;font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.pill.run{background:var(--run-d);color:var(--run);}
+.pill.bike{background:var(--bike-d);color:var(--bike);}
+.pill.swim{background:var(--swim-d);color:var(--swim);}
+.pill.rest{background:var(--surf3);color:var(--faint);}
+
+/* ── TEXTAREA ── */
+textarea.field-input{resize:none;height:70px;line-height:1.5;}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-logo">TRILOG</div>
+    <div class="hdr-sub">Entrenamiento · Triatlón</div>
+  </div>
+  <div class="hdr-date" id="hdr-date"></div>
+</div>
+
+<!-- BACKUP BAR -->
+<div id="storage-warning" style="display:none;align-items:center;gap:8px;padding:7px 14px;background:rgba(181,32,32,0.18);border-bottom:.5px solid rgba(181,32,32,0.4);font-size:11px;color:#f07070;flex-shrink:0;">
+  ⚠️ <strong>Tu navegador no puede guardar datos localmente.</strong> Exportá un backup antes de cerrar.
+</div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--surf2);border-bottom:.5px solid var(--b1);flex-shrink:0;">
+  <span style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;flex:1;">Datos locales</span>
+  <span id="backup-msg" style="display:none;font-size:11px;margin-right:8px;"></span>
+  <button onclick="exportData()" style="padding:5px 11px;border-radius:6px;border:.5px solid var(--b2);background:var(--surf3);color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--body);">↓ Exportar</button>
+  <button onclick="triggerImport()" style="padding:5px 11px;border-radius:6px;border:.5px solid var(--swim-b);background:var(--swim-d);color:var(--swim);font-size:11px;cursor:pointer;font-family:var(--body);">↑ Importar</button>
+  <input type="file" id="import-file-inp" accept=".json" style="display:none" onchange="importData(this.files[0]);this.value='';">
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" id="tab-today" onclick="showTab('today')">Hoy</button>
+  <button class="tab" id="tab-log" onclick="showTab('log')">Registrar</button>
+  <button class="tab" id="tab-history" onclick="showTab('history')">Historial</button>
+  <button class="tab" id="tab-schedule" onclick="showTab('schedule')">Cronograma</button>
+</div>
+
+<!-- ═══ TODAY VIEW ═══ -->
+<div class="view active" id="view-today">
+  <div class="scroll">
+    <div id="today-week-strip"></div>
+    <div id="today-stats"></div>
+    <div class="slbl">Hoy en el cronograma</div>
+    <div id="today-plan"></div>
+    <div class="slbl">Sesiones registradas hoy</div>
+    <div id="today-done"></div>
+  </div>
+</div>
+
+<!-- ═══ LOG VIEW ═══ -->
+<div class="view" id="view-log">
+  <div class="scroll">
+    <div class="slbl">Tipo de actividad</div>
+    <div class="sport-select" id="sport-select">
+      <button class="sport-btn active run" data-sport="run" onclick="setSport('run')">🏃 Correr</button>
+      <button class="sport-btn" data-sport="bike" onclick="setSport('bike')">🚴 Bici</button>
+      <button class="sport-btn" data-sport="swim" onclick="setSport('swim')">🏊 Natación</button>
+    </div>
+
+    <!-- GENERAL -->
+    <div class="form-card">
+      <div class="form-hdr">
+        <div class="sport-dot run" id="form-dot"></div>
+        <div class="form-title" id="form-title">Datos generales</div>
+      </div>
+      <div class="form-body">
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Fecha</label>
+            <input type="date" class="field-input" id="f-date">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Hora</label>
+            <input type="time" class="field-input" id="f-time">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nombre / descripción (opcional)</label>
+          <input type="text" class="field-input" id="f-name" placeholder="ej: Rodaje fácil Z2">
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Distancia (km)</label>
+            <input type="number" class="field-input" id="f-dist" placeholder="0.0" step="0.1">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Duración</label>
+            <input type="text" class="field-input" id="f-dur" placeholder="h:mm o mm:ss">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Calorías</label>
+            <input type="number" class="field-input" id="f-cal" placeholder="kcal">
+          </div>
+          <div class="field-group">
+            <label class="field-label">FC media (bpm)</label>
+            <input type="number" class="field-input" id="f-hr" placeholder="bpm">
+          </div>
+        </div>
+        <!-- SPORT-SPECIFIC -->
+        <div id="sport-specific"></div>
+      </div>
+    </div>
+
+    <!-- SERIES -->
+    <div class="form-card" id="series-card">
+      <div class="form-hdr">
+        <div class="form-title">Series (opcional)</div>
+      </div>
+      <div class="form-body">
+        <div id="series-list"></div>
+        <button class="btn-add-series" onclick="addSeries()">+ Agregar serie</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Notas</label>
+      <textarea class="field-input" id="f-notes" placeholder="Sensaciones, condiciones, observaciones..."></textarea>
+    </div>
+
+    <button class="btn-primary" id="btn-save-log" onclick="saveLog()">Guardar actividad</button>
+    <div id="save-ok" style="display:none;text-align:center;font-size:12px;color:var(--bike);padding:8px 0;">✓ Actividad guardada</div>
+  </div>
+</div>
+
+<!-- ═══ HISTORY VIEW ═══ -->
+<div class="view" id="view-history">
+  <div class="scroll" id="hist-scroll">
+    <div id="hist-content"></div>
+  </div>
+</div>
+
+<!-- ═══ SCHEDULE VIEW ═══ -->
+<div class="view" id="view-schedule">
+  <div class="scroll">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button onclick="openTemplateManager()" style="flex:1;padding:9px 12px;border-radius:var(--rs);border:.5px solid var(--swim-b);background:var(--swim-d);color:var(--swim);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--body);">📋 Plantillas</button>
+      <button onclick="openSchedBuilder()" style="flex:1;padding:9px 12px;border-radius:var(--rs);border:.5px solid var(--b2);background:var(--surf2);color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--body);">✏ Editar semana</button>
+    </div>
+    <div class="sched-nav">
+      <button class="sched-nav-btn" id="sched-prev">‹</button>
+      <div class="sched-nav-label" id="sched-label"></div>
+      <button class="sched-nav-btn" id="sched-next">›</button>
+    </div>
+    <div id="sched-content"></div>
+  </div>
+</div>
+
+<!-- ═══ TEMPLATE MANAGER MODAL ═══ -->
+<div class="modal-overlay" id="tpl-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">📋 Plantillas semanales</div>
+      <button class="modal-close" onclick="closeTplModal()">×</button>
+    </div>
+    <div class="modal-body" id="tpl-modal-body"></div>
+    <div class="modal-footer" id="tpl-modal-footer">
+      <button class="btn-primary" onclick="openTplEditor(null)">+ Nueva plantilla</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TEMPLATE EDITOR MODAL ═══ -->
+<div class="modal-overlay" id="tpl-editor-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title" id="tpl-editor-title">Nueva plantilla</div>
+      <button class="modal-close" onclick="closeTplEditor()">×</button>
+    </div>
+    <div class="modal-body" id="tpl-editor-body"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveTplEditor()">Guardar plantilla</button>
+      <button class="btn-secondary" onclick="closeTplEditor()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APPLY TEMPLATE MODAL ═══ -->
+<div class="modal-overlay" id="tpl-apply-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title" id="tpl-apply-title">Aplicar plantilla</div>
+      <button class="modal-close" onclick="closeTplApply()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elegí la semana. Los días se mapean Lun→Dom sin importar la fecha.</div>
+      <div style="margin-bottom:12px;">
+        <label class="field-label">Semana (cualquier día — se ajusta al Lunes)</label>
+        <input type="date" class="field-input" id="tpl-apply-date" oninput="updateApplyPreview()">
+      </div>
+      <div style="font-size:11px;color:var(--faint);padding:10px 12px;background:var(--surf2);border-radius:var(--rs);border:.5px solid var(--b1);line-height:1.8;" id="tpl-apply-preview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary swim" onclick="applyTemplate()">✓ Aplicar a esa semana</button>
+      <button class="btn-secondary" onclick="closeTplApply()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOG MODAL (from Today) ═══ -->
+<div class="modal-overlay" id="quick-log-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title" id="ql-modal-title">Registrar actividad</div>
+      <button class="modal-close" onclick="closeQuickLog()">×</button>
+    </div>
+    <div class="modal-body" id="ql-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" id="ql-save-btn" onclick="saveQuickLog()">Guardar</button>
+      <button class="btn-secondary" onclick="closeQuickLog()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCHEDULE BUILDER MODAL ═══ -->
+<div class="modal-overlay" id="sched-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">Editar cronograma semanal</div>
+      <button class="modal-close" onclick="closeSchedBuilder()">×</button>
+    </div>
+    <div class="modal-body" id="sched-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="saveSchedWeek()">Guardar semana</button>
+      <button class="btn-secondary" onclick="closeSchedBuilder()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+// Verifica si localStorage funciona (puede fallar en Safari privado o file://)
+var _lsOk=(function(){try{var k="_tl_";localStorage.setItem(k,"1");var ok=localStorage.getItem(k)==="1";localStorage.removeItem(k);return ok;}catch(e){return false;}})();
+
+// RAM fallback: datos viven al menos en la sesión abierta
+var _RAM={"tri-logs":"[]","tri-sched":"{}","tri-tpls":"[]"};
+
+function _get(key){
+  if(_lsOk){var v=localStorage.getItem(key);if(v!==null)return v;}
+  try{var sv=sessionStorage.getItem(key);if(sv!==null){if(_lsOk)localStorage.setItem(key,sv);return sv;}}catch(e){}
+  return _RAM[key]||null;
+}
+function _set(key,val){
+  _RAM[key]=val;
+  if(_lsOk){try{localStorage.setItem(key,val);}catch(e){}}
+  try{sessionStorage.setItem(key,val);}catch(e){}
+}
+
+var STORE = {
+  logs:     function(){ try{return JSON.parse(_get("tri-logs")||"[]");}catch(e){return[];} },
+  saveLogs: function(d){ _set("tri-logs",JSON.stringify(d)); },
+  sched:    function(){ try{return JSON.parse(_get("tri-sched")||"{}");}catch(e){return{};} },
+  saveSched:function(d){ _set("tri-sched",JSON.stringify(d)); }
+};
+
+// ── BACKUP / RESTORE ──────────────────────────────────────────────────────────
+function exportData(){
+  var data={_version:1,_app:"trilog",_date:new Date().toISOString(),
+    logs:STORE.logs(),sched:STORE.sched(),
+    tpls:(function(){try{return JSON.parse(_get("tri-tpls")||"[]");}catch(e){return[];}})()};
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download="trilog_backup_"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+}
+
+function triggerImport(){document.getElementById("import-file-inp").click();}
+
+function importData(file){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(!data._app||data._app!=="trilog")throw new Error("Archivo no es un backup de TriLog");
+      if(data.logs)  _set("tri-logs", JSON.stringify(data.logs));
+      if(data.sched) _set("tri-sched",JSON.stringify(data.sched));
+      if(data.tpls)  _set("tri-tpls", JSON.stringify(data.tpls.filter(function(t){return !t.builtin;})));
+      renderToday();renderSchedule();
+      showBackupMsg("✓ Restaurado: "+((data.logs||[]).length)+" sesiones importadas.","var(--bike)");
+    }catch(err){alert("Error al importar: "+err.message);}
+  };
+  reader.readAsText(file);
+}
+
+function showBackupMsg(txt,color){
+  var el=document.getElementById("backup-msg");
+  if(!el)return;
+  el.textContent=txt;el.style.color=color||"var(--bike)";el.style.display="block";
+  setTimeout(function(){el.style.display="none";},3500);
+}
+
+// ── UTILS ────────────────────────────────────────────────────────────────────
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function todayISO(){ var d=new Date(); return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate()); }
+function p2(n){ return String(n).padStart(2,"0"); }
+function fmtDate(iso){
+  var parts=iso.split("-");
+  var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  var days=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+  var months=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  return days[d.getDay()]+" "+d.getDate()+" "+months[d.getMonth()];
+}
+function fmtDateFull(iso){
+  var parts=iso.split("-");
+  var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  var days=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+  var months=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  return days[d.getDay()]+" "+d.getDate()+" de "+months[d.getMonth()]+" "+d.getFullYear();
+}
+function isoWeekStart(iso){ // returns Monday ISO of the week containing iso
+  var parts=iso.split("-");
+  var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  var dow=d.getDay(); var diff=(dow===0)?-6:(1-dow);
+  d.setDate(d.getDate()+diff);
+  return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());
+}
+function addDays(iso,n){
+  var parts=iso.split("-");
+  var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  d.setDate(d.getDate()+n);
+  return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());
+}
+function sportLabel(s){ return s==="run"?"🏃 Correr":s==="bike"?"🚴 Bici":s==="swim"?"🏊 Natación":s==="rest"?"😴 Descanso":"Actividad"; }
+function sportUnit(s){ return s==="run"?"km":s==="bike"?"km":s==="swim"?"km":"km"; }
+function paceLabel(s){ return s==="run"?"Ritmo (min/km)":s==="swim"?"Ritmo (min/100m)":s==="bike"?"Vatios":""; }
+function calcPace(sport,dist,dur){
+  if(!dist||!dur)return"—";
+  var m=durationToMin(dur);
+  if(!m)return"—";
+  if(sport==="run"){ var pm=m/dist; return Math.floor(pm)+":"+p2(Math.round((pm%1)*60))+" /km"; }
+  if(sport==="bike"){ return "—"; }
+  if(sport==="swim"){ var d100=dist*10; var pm2=m/(d100); return Math.floor(pm2)+":"+p2(Math.round((pm2%1)*60))+" /100m"; }
+  return"—";
+}
+function durationToMin(s){
+  if(!s)return 0;
+  var p=s.trim().split(":");
+  if(p.length===3)return parseInt(p[0])*60+parseInt(p[1])+parseInt(p[2])/60;
+  if(p.length===2)return parseInt(p[0])*60+parseInt(p[1]);
+  return parseFloat(s)||0;
+}
+
+// ── STORAGE HEALTH CHECK ─────────────────────────────────────────────────────
+function checkStorageWarning(){
+  if(!_lsOk){
+    var el=document.getElementById("storage-warning");
+    if(el)el.style.display="flex";
+  }
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+var currentSport="run";
+var seriesCount=0;
+var schedWeekOffset=0; // weeks from current week
+var qlSport=null; // sport for quick log modal
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+(function init(){
+  var now=new Date();
+  document.getElementById("hdr-date").innerHTML=
+    '<div class="hdr-date-day">'+["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"][now.getDay()]+' '+now.getDate()+'</div>'
+    +'<div class="hdr-date-full">'+["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][now.getMonth()]+" "+now.getFullYear()+'</div>';
+  document.getElementById("f-date").value=todayISO();
+  var h=p2(now.getHours()),m2=p2(now.getMinutes());
+  document.getElementById("f-time").value=h+":"+m2;
+  setSport("run");
+  renderToday();
+  renderSchedule();
+  checkStorageWarning();
+  document.getElementById("sched-prev").addEventListener("click",function(){ schedWeekOffset--; renderSchedule(); });
+  document.getElementById("sched-next").addEventListener("click",function(){ schedWeekOffset++; renderSchedule(); });
+})();
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function showTab(v){
+  ["today","log","history","schedule"].forEach(function(id){
+    document.getElementById("view-"+id).className="view"+(v===id?" active":"");
+    document.getElementById("tab-"+id).className="tab"+(v===id?" active":"");
+  });
+  if(v==="history") renderHistory();
+  if(v==="today") renderToday();
+  if(v==="schedule") renderSchedule();
+}
+
+// ── SPORT SELECTOR ────────────────────────────────────────────────────────────
+function setSport(s){
+  currentSport=s;
+  document.querySelectorAll(".sport-btn").forEach(function(b){
+    b.className="sport-btn"+(b.dataset.sport===s?" active "+s:"");
+  });
+  var dot=document.getElementById("form-dot");
+  dot.className="sport-dot "+s;
+  document.getElementById("form-title").textContent=sportLabel(s).replace(/^../,"").trim()+" · Datos generales";
+  var btn=document.getElementById("btn-save-log");
+  btn.className="btn-primary "+s;
+  renderSportSpecific(s);
+}
+
+function renderSportSpecific(s){
+  var el=document.getElementById("sport-specific");
+  if(s==="run"){
+    el.innerHTML='<div class="field-row">'
+      +'<div class="field-group"><label class="field-label">Ritmo prom (min/km)</label>'
+      +'<input type="text" class="field-input" id="f-pace" placeholder="ej: 5:30"></div>'
+      +'<div class="field-group"><label class="field-label">Elevación (m)</label>'
+      +'<input type="number" class="field-input" id="f-elev" placeholder="m"></div></div>';
+  } else if(s==="bike"){
+    el.innerHTML='<div class="field-row">'
+      +'<div class="field-group"><label class="field-label">Vatios prom (W)</label>'
+      +'<input type="number" class="field-input" id="f-watts" placeholder="W"></div>'
+      +'<div class="field-group"><label class="field-label">Vatios máx (W)</label>'
+      +'<input type="number" class="field-input" id="f-watts-max" placeholder="W"></div></div>'
+      +'<div class="field-row">'
+      +'<div class="field-group"><label class="field-label">Velocidad prom (km/h)</label>'
+      +'<input type="number" class="field-input" id="f-speed" placeholder="km/h" step="0.1"></div>'
+      +'<div class="field-group"><label class="field-label">Elevación (m)</label>'
+      +'<input type="number" class="field-input" id="f-elev" placeholder="m"></div></div>';
+  } else if(s==="swim"){
+    el.innerHTML='<div class="field-row">'
+      +'<div class="field-group"><label class="field-label">Ritmo prom (min/100m)</label>'
+      +'<input type="text" class="field-input" id="f-pace100" placeholder="ej: 2:00"></div>'
+      +'<div class="field-group"><label class="field-label">Piscina (m)</label>'
+      +'<input type="number" class="field-input" id="f-pool" placeholder="25 o 50"></div></div>';
+  }
+}
+
+// ── SERIES ────────────────────────────────────────────────────────────────────
+function addSeries(){
+  var c=document.getElementById("series-list");
+  var i=seriesCount++;
+  var div=document.createElement("div"); div.className="series-block"; div.id="sb-"+i;
+  var specific="";
+  if(currentSport==="run"){
+    specific='<div class="field-row">'
+      +'<div class="field-group"><label class="field-label">Distancia (m o km)</label>'
+      +'<input type="text" class="field-input" id="ss-dist-'+i+'" placeholder="ej: 1km"></div>'
+      +'<div class="field-group"><label class="field-label">Ritmo (min/km)</label>'
+      +'<input type="text" class="field-input" id="ss-pace-'+i+'" placeholder="ej: 4:30"></div></div>';
+  } else if(currentSport==="bike"){
+    specific='<div class="field-row">'
+      +'<div class="field-group"><label class="field-label">Distancia o tiempo</label>'
+      +'<input type="text" class="field-input" id="ss-dist-'+i+'" placeholder="ej: 20km"></div>'
+      +'<div class="field-group"><label class="field-label">Vatios (W)</label>'
+      +'<input type="number" class="field-input" id="ss-watts-'+i+'" placeholder="W"></div></div>';
+  } else if(currentSport==="swim"){
+    specific='<div class="field-row">'
+      +'<div class="field-group"><label class="field-label">Distancia</label>'
+      +'<input type="text" class="field-input" id="ss-dist-'+i+'" placeholder="ej: 200m"></div>'
+      +'<div class="field-group"><label class="field-label">Ritmo (min/100m)</label>'
+      +'<input type="text" class="field-input" id="ss-pace-'+i+'" placeholder="ej: 1:55"></div></div>';
+  }
+  div.innerHTML='<div class="series-hdr"><span class="series-num">SERIE #'+(document.getElementById("series-list").querySelectorAll(".series-block").length+1)+'</span><button class="btn-del-series" onclick="this.closest(\'.series-block\').remove()">×</button></div>'
+    +'<div class="field-row">'
+    +'<div class="field-group"><label class="field-label">Reps</label>'
+    +'<input type="number" class="field-input" id="ss-reps-'+i+'" placeholder="1" min="1" value="1"></div>'
+    +'<div class="field-group"><label class="field-label">Descanso</label>'
+    +'<input type="text" class="field-input" id="ss-rest-'+i+'" placeholder="ej: 30s"></div></div>'
+    +specific;
+  c.appendChild(div);
+}
+
+function collectSeries(){
+  var arr=[];
+  document.querySelectorAll(".series-block").forEach(function(sb){
+    var i=sb.id.replace("sb-","");
+    var g=function(fid){var el=document.getElementById(fid);return el?el.value.trim():"";};
+    arr.push({
+      reps:parseInt(g("ss-reps-"+i))||1,
+      rest:g("ss-rest-"+i),
+      dist:g("ss-dist-"+i),
+      pace:g("ss-pace-"+i)||"",
+      watts:g("ss-watts-"+i)||""
+    });
+  });
+  return arr;
+}
+
+// ── SAVE LOG ──────────────────────────────────────────────────────────────────
+function saveLog(){
+  var g=function(id){var el=document.getElementById(id);return el?el.value.trim():"";};
+  var dist=parseFloat(g("f-dist"))||0;
+  var dur=g("f-dur");
+  var entry={
+    id:uid(),
+    sport:currentSport,
+    date:g("f-date")||todayISO(),
+    time:g("f-time"),
+    name:g("f-name"),
+    dist:dist,
+    dur:dur,
+    cal:parseInt(g("f-cal"))||0,
+    hr:parseInt(g("f-hr"))||0,
+    notes:g("f-notes"),
+    series:collectSeries()
+  };
+  if(currentSport==="run"){ entry.pace=g("f-pace"); entry.elev=parseInt(g("f-elev"))||0; }
+  else if(currentSport==="bike"){ entry.watts=parseInt(g("f-watts"))||0; entry.wattsMax=parseInt(g("f-watts-max"))||0; entry.speed=parseFloat(g("f-speed"))||0; entry.elev=parseInt(g("f-elev"))||0; }
+  else if(currentSport==="swim"){ entry.pace100=g("f-pace100"); entry.pool=parseInt(g("f-pool"))||0; }
+  var logs=STORE.logs();
+  logs.push(entry);
+  STORE.saveLogs(logs);
+  // reset
+  ["f-name","f-dist","f-dur","f-cal","f-hr","f-notes","f-pace","f-elev","f-watts","f-watts-max","f-speed","f-pace100","f-pool"].forEach(function(id){var el=document.getElementById(id);if(el)el.value="";});
+  document.getElementById("series-list").innerHTML="";
+  seriesCount=0;
+  var ok=document.getElementById("save-ok");
+  ok.style.display="block";
+  setTimeout(function(){ok.style.display="none";},2500);
+}
+
+// ── TODAY ──────────────────────────────────────────────────────────────────────
+function renderToday(){
+  renderWeekStrip();
+  renderTodayStats();
+  renderTodayPlan();
+  renderTodayDone();
+}
+
+function renderWeekStrip(){
+  var today=todayISO();
+  var mon=isoWeekStart(today);
+  var dayNames=["L","M","X","J","V","S","D"];
+  var html="";
+  var logs=STORE.logs();
+  for(var i=0;i<7;i++){
+    var d=addDays(mon,i);
+    var isToday=(d===today);
+    var dayLogs=logs.filter(function(l){return l.date===d;});
+    var dots=dayLogs.map(function(l){return'<div class="wd-dot" style="background:var(--'+l.sport+')"></div>';}).join("");
+    html+='<div class="week-day'+(isToday?" today":"")+(dayLogs.length?" has-entry":"")+'">'
+      +'<div class="week-day-name">'+dayNames[i]+'</div>'
+      +'<div class="week-day-num">'+parseInt(d.split("-")[2])+'</div>'
+      +'<div class="week-day-dot">'+dots+'</div>'
+    +'</div>';
+  }
+  document.getElementById("today-week-strip").innerHTML='<div class="week-strip">'+html+'</div>';
+}
+
+function renderTodayStats(){
+  var today=todayISO();
+  var mon=isoWeekStart(today);
+  var logs=STORE.logs();
+  var week=logs.filter(function(l){return l.date>=mon&&l.date<=addDays(mon,6);});
+  var run=week.filter(function(l){return l.sport==="run";});
+  var bike=week.filter(function(l){return l.sport==="bike";});
+  var swim=week.filter(function(l){return l.sport==="swim";});
+  function sumDist(arr){return arr.reduce(function(t,l){return t+(l.dist||0);},0).toFixed(1);}
+  document.getElementById("today-stats").innerHTML=
+    '<div class="stats-row">'
+    +'<div class="stat-box run"><div class="stat-val">'+sumDist(run)+'</div><div class="stat-lbl">km corriendo</div></div>'
+    +'<div class="stat-box bike"><div class="stat-val">'+sumDist(bike)+'</div><div class="stat-lbl">km en bici</div></div>'
+    +'<div class="stat-box swim"><div class="stat-val">'+sumDist(swim)+'</div><div class="stat-lbl">km natación</div></div>'
+    +'</div>';
+}
+
+function renderTodayPlan(){
+  var today=todayISO();
+  var sched=STORE.sched();
+  var acts=sched[today]||[];
+  var el=document.getElementById("today-plan");
+  if(!acts.length){
+    el.innerHTML='<div class="today-card" style="border:.5px solid var(--b1);border-radius:var(--r);padding:14px 16px;">'
+      +'<div style="font-size:13px;color:var(--faint);">Sin actividad programada para hoy.</div>'
+    +'</div>';
+    return;
+  }
+  var html="";
+  acts.forEach(function(act){
+    var s=act.sport;
+    var logBtnCls=s==="rest"?"generic":s;
+    html+='<div class="today-card" style="border-color:var(--'+s+'-b,var(--b1));">'
+      +'<div class="today-card-hdr">'
+        +'<div class="sport-dot '+s+'"></div>'
+        +'<div>'
+          +'<div class="today-card-title">'+esc(act.desc||sportLabel(s))+'</div>'
+        +'</div>'
+        +'<span class="pill '+s+'">'+sportLabel(s).replace(/^../,"").trim()+'</span>'
+      +'</div>';
+    if(s!=="rest"){
+      html+='<div class="today-card-body">'
+        +(act.desc?'<div class="today-desc">'+esc(act.desc)+'</div>':'')
+        +'<button class="btn-log '+logBtnCls+'" data-sport="'+s+'" onclick="openQuickLog(\''+s+'\',\''+esc(act.desc||"")+'\')">▶ Registrar sesión</button>'
+      +'</div>';
+    }
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+function renderTodayDone(){
+  var today=todayISO();
+  var logs=STORE.logs().filter(function(l){return l.date===today;});
+  var el=document.getElementById("today-done");
+  if(!logs.length){el.innerHTML='<div style="font-size:13px;color:var(--faint);padding:6px 0;">Ninguna sesión registrada aún.</div>';return;}
+  el.innerHTML=logs.map(function(l,i){return renderEntryCard(l,i);}).join('');
+}
+
+// ── QUICK LOG MODAL ────────────────────────────────────────────────────────────
+function openQuickLog(sport,name){
+  qlSport=sport;
+  document.getElementById("ql-modal-title").textContent="Registrar · "+sportLabel(sport).replace(/^../,"").trim();
+  var btn=document.getElementById("ql-save-btn");
+  btn.className="btn-primary "+sport;
+  var body=document.getElementById("ql-modal-body");
+  var now=new Date();
+  var specific="";
+  if(sport==="run") specific='<div class="field-row"><div class="field-group"><label class="field-label">Ritmo (min/km)</label><input type="text" class="field-input" id="ql-pace" placeholder="ej: 5:30"></div><div class="field-group"><label class="field-label">Elevación (m)</label><input type="number" class="field-input" id="ql-elev"></div></div>';
+  else if(sport==="bike") specific='<div class="field-row"><div class="field-group"><label class="field-label">Vatios prom (W)</label><input type="number" class="field-input" id="ql-watts"></div><div class="field-group"><label class="field-label">Velocidad (km/h)</label><input type="number" class="field-input" id="ql-speed" step="0.1"></div></div>';
+  else if(sport==="swim") specific='<div class="field-row"><div class="field-group"><label class="field-label">Ritmo (min/100m)</label><input type="text" class="field-input" id="ql-pace100" placeholder="ej: 2:00"></div><div class="field-group"><label class="field-label">Piscina (m)</label><input type="number" class="field-input" id="ql-pool" placeholder="25 o 50"></div></div>';
+  body.innerHTML='<div class="field-group"><label class="field-label">Descripción</label><input type="text" class="field-input" id="ql-name" value="'+esc(name)+'"></div>'
+    +'<div class="field-row"><div class="field-group"><label class="field-label">Distancia (km)</label><input type="number" class="field-input" id="ql-dist" step="0.1" placeholder="0.0"></div><div class="field-group"><label class="field-label">Duración</label><input type="text" class="field-input" id="ql-dur" placeholder="h:mm o mm:ss"></div></div>'
+    +'<div class="field-row"><div class="field-group"><label class="field-label">Calorías</label><input type="number" class="field-input" id="ql-cal"></div><div class="field-group"><label class="field-label">FC media (bpm)</label><input type="number" class="field-input" id="ql-hr"></div></div>'
+    +specific
+    +'<div class="field-group" style="margin-top:6px;"><label class="field-label">Notas</label><textarea class="field-input" id="ql-notes" placeholder="Sensaciones, notas..."></textarea></div>';
+  document.getElementById("quick-log-modal").className="modal-overlay open";
+}
+
+function closeQuickLog(){ document.getElementById("quick-log-modal").className="modal-overlay"; }
+
+function saveQuickLog(){
+  var g=function(id){var el=document.getElementById(id);return el?el.value.trim():"";};
+  var entry={id:uid(),sport:qlSport,date:todayISO(),time:p2(new Date().getHours())+":"+p2(new Date().getMinutes()),
+    name:g("ql-name"),dist:parseFloat(g("ql-dist"))||0,dur:g("ql-dur"),cal:parseInt(g("ql-cal"))||0,hr:parseInt(g("ql-hr"))||0,notes:g("ql-notes"),series:[]};
+  if(qlSport==="run"){entry.pace=g("ql-pace");entry.elev=parseInt(g("ql-elev"))||0;}
+  else if(qlSport==="bike"){entry.watts=parseInt(g("ql-watts"))||0;entry.speed=parseFloat(g("ql-speed"))||0;}
+  else if(qlSport==="swim"){entry.pace100=g("ql-pace100");entry.pool=parseInt(g("ql-pool"))||0;}
+  var logs=STORE.logs();logs.push(entry);STORE.saveLogs(logs);
+  closeQuickLog();renderToday();
+}
+
+// ── ENTRY CARD ────────────────────────────────────────────────────────────────
+function renderEntryCard(l){
+  var s=l.sport;
+  var metrics=[];
+  if(l.dist)metrics.push({v:l.dist+"km",lbl:"Distancia"});
+  if(l.dur)metrics.push({v:l.dur,lbl:"Duración"});
+  if(s==="run"&&l.pace)metrics.push({v:l.pace+"/km",lbl:"Ritmo"});
+  if(s==="bike"&&l.watts)metrics.push({v:l.watts+"W",lbl:"Vatios prom"});
+  if(s==="bike"&&l.speed)metrics.push({v:l.speed+"km/h",lbl:"Velocidad"});
+  if(s==="swim"&&l.pace100)metrics.push({v:l.pace100+"/100m",lbl:"Ritmo"});
+  if(l.cal)metrics.push({v:l.cal+"kcal",lbl:"Calorías"});
+  if(l.hr)metrics.push({v:l.hr+"bpm",lbl:"FC media"});
+  if((s==="run"||s==="bike")&&l.elev)metrics.push({v:l.elev+"m",lbl:"Elevación"});
+  var metHtml=metrics.map(function(m){return'<div class="hist-metric"><div class="hist-metric-val">'+esc(m.v)+'</div><div class="hist-metric-lbl">'+esc(m.lbl)+'</div></div>';}).join("");
+  var seriesHtml="";
+  if(l.series&&l.series.length){
+    seriesHtml='<div class="hist-series"><table class="hist-series-tbl"><thead><tr>'
+      +'<th>#</th><th>Reps</th><th>Dist</th>'
+      +(s==="run"||s==="swim"?'<th>Ritmo</th>':'')
+      +(s==="bike"?'<th>Vatios</th>':'')
+      +'<th>Desc</th></tr></thead><tbody>'
+      +l.series.map(function(ser,si){
+        return'<tr><td>'+(si+1)+'</td><td>'+(ser.reps||1)+'×</td><td>'+esc(ser.dist||"—")+'</td>'
+          +(s==="run"||s==="swim"?'<td>'+esc(ser.pace||"—")+'</td>':'')
+          +(s==="bike"?'<td>'+(ser.watts||"—")+'W</td>':'')
+          +'<td>'+esc(ser.rest||"—")+'</td></tr>';
+      }).join('')
+      +'</tbody></table></div>';
+  }
+  return'<div class="hist-entry '+s+'">'
+    +'<div class="hist-entry-hdr">'
+      +'<span class="hist-sport-tag '+s+'">'+sportLabel(s).replace(/^../,"").trim()+'</span>'
+      +'<span class="hist-entry-name">'+esc(l.name||(sportLabel(s).replace(/^../,"").trim()))+'</span>'
+      +(l.time?'<span class="hist-entry-time">'+l.time+'</span>':'')
+      +'<button class="hist-entry-del" data-lid="'+l.id+'" onclick="delLog(\''+l.id+'\')">×</button>'
+    +'</div>'
+    +(metHtml?'<div class="hist-metrics">'+metHtml+'</div>':'')
+    +seriesHtml
+    +(l.notes?'<div style="padding:0 18px 10px;font-size:11px;color:var(--muted);font-style:italic;">'+esc(l.notes)+'</div>':'')
+  +'</div>';
+}
+
+function delLog(id){
+  if(!confirm("¿Eliminar esta actividad?"))return;
+  STORE.saveLogs(STORE.logs().filter(function(l){return l.id!==id;}));
+  renderHistory();renderToday();
+}
+
+// ── HISTORY ────────────────────────────────────────────────────────────────────
+function renderHistory(){
+  var logs=STORE.logs();
+  var el=document.getElementById("hist-content");
+  if(!logs.length){el.innerHTML='<div class="empty-h">No hay actividades registradas.<br><span style="font-size:11px;">Registrá tu primera sesión en la tab "Registrar".</span></div>';return;}
+  // Group by date descending
+  var byDate={};var dates=[];
+  var sorted=logs.slice().sort(function(a,b){return b.date.localeCompare(a.date)||(b.time||"").localeCompare(a.time||"");});
+  sorted.forEach(function(l){
+    if(!byDate[l.date]){byDate[l.date]=[];dates.push(l.date);}
+    byDate[l.date].push(l);
+  });
+  // Month grouping
+  var byMonth={};var months=[];
+  dates.forEach(function(d){
+    var mk=d.slice(0,7);
+    if(!byMonth[mk]){byMonth[mk]=[];months.push(mk);}
+    if(byMonth[mk].indexOf(d)===-1)byMonth[mk].push(d);
+  });
+  var mNames=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  var html="";
+  months.forEach(function(mk){
+    var parts=mk.split("-");
+    html+='<div style="margin-bottom:4px;font-size:10px;font-family:var(--title);letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:14px 0 6px;">'
+      +mNames[parseInt(parts[1])-1]+" "+parts[0]+'</div>';
+    byMonth[mk].forEach(function(d){
+      var isToday=(d===todayISO());
+      html+='<div class="hist-day"><div class="hist-day-label">'
+        +fmtDate(d)+(isToday?' <span style="font-size:9px;background:var(--run-d);color:var(--run);padding:1px 5px;border-radius:4px;margin-left:4px;">Hoy</span>':'')
+      +'</div>';
+      byDate[d].forEach(function(l){html+=renderEntryCard(l);});
+      html+='</div>';
+    });
+  });
+  el.innerHTML=html;
+}
+
+// ── SCHEDULE ──────────────────────────────────────────────────────────────────
+function renderSchedule(){
+  var today=todayISO();
+  var baseWeekMon=isoWeekStart(today);
+  var weekMon=addDays(baseWeekMon,schedWeekOffset*7);
+  var weekSun=addDays(weekMon,6);
+  var dayNames=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  var sched=STORE.sched();
+
+  // Label
+  var monParts=weekMon.split("-");var sunParts=weekSun.split("-");
+  var mNames=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  document.getElementById("sched-label").textContent=
+    parseInt(monParts[2])+" "+mNames[parseInt(monParts[1])-1]+" – "+parseInt(sunParts[2])+" "+mNames[parseInt(sunParts[1])-1]+" "+sunParts[0]
+    +(schedWeekOffset===0?" · Esta semana":schedWeekOffset===-1?" · Semana pasada":schedWeekOffset===1?" · Próx. semana":"");
+
+  var html="";
+  for(var i=0;i<7;i++){
+    var d=addDays(weekMon,i);
+    var isToday=(d===today);
+    var acts=sched[d]||[];
+    var parts=d.split("-");
+    html+='<div class="sched-day'+(isToday?" today-sched":"") +'">'
+      +'<div class="sched-day-hdr">'
+        +'<div class="sched-day-name">'+dayNames[i]+'</div>'
+        +'<div class="sched-day-date">'+parseInt(parts[2])+" "+mNames[parseInt(parts[1])-1]+'</div>'
+        +(isToday?'<div class="sched-day-today-badge">Hoy</div>':'')
+      +'</div>';
+    if(!acts.length){
+      html+='<div class="sched-no-act">Sin actividad programada</div>';
+    } else {
+      acts.forEach(function(act){
+        html+='<div class="sched-activity">'
+          +'<div class="sched-sport-icon '+act.sport+'"></div>'
+          +'<div style="flex:1;">'
+            +'<div class="sched-act-type '+act.sport+'">'+sportLabel(act.sport).replace(/^../,"").trim()+'</div>'
+            +(act.desc?'<div class="sched-act-txt">'+esc(act.desc)+'</div>':'')
+          +'</div>'
+        +'</div>';
+      });
+    }
+    html+='</div>';
+  }
+  document.getElementById("sched-content").innerHTML=html;
+}
+
+// ── SCHEDULE BUILDER ──────────────────────────────────────────────────────────
+var _sbWeekMon="";
+function openSchedBuilder(){
+  var today=todayISO();
+  var baseWeekMon=isoWeekStart(today);
+  _sbWeekMon=addDays(baseWeekMon,schedWeekOffset*7);
+  var sched=STORE.sched();
+  var dayNames=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  var mNames=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  var sportOpts='<option value="run">Correr</option><option value="bike">Bici</option><option value="swim">Natación</option><option value="rest">Descanso</option>';
+  var html='<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Editando semana: <b style="color:var(--text)">'+_sbWeekMon+'</b></div>';
+  html+='<div style="font-size:11px;color:var(--faint);margin-bottom:14px;">Podés agregar varias actividades por día (ej: brick mañana/tarde).</div>';
+
+  for(var i=0;i<7;i++){
+    var d=addDays(_sbWeekMon,i);
+    var acts=sched[d]||[];
+    var parts=d.split("-");
+    html+='<div class="sb-day-row" id="sbrow-'+d+'">'
+      +'<div class="sb-day-name">'+dayNames[i].slice(0,3)+'<br><span style="font-size:9px;color:var(--faint);">'+parseInt(parts[2])+" "+mNames[parseInt(parts[1])-1]+'</span></div>'
+      +'<div class="sb-day-acts" id="sbacts-'+d+'">';
+    (acts.length?acts:[{sport:"run",desc:""}]).forEach(function(act,ai){
+      html+=sbActRow(d,ai,act.sport,act.desc);
+    });
+    html+='<button class="sb-add-btn" data-d="'+d+'" onclick="sbAddAct(\''+d+'\')">+ actividad</button>'
+    +'</div></div>';
+  }
+  document.getElementById("sched-modal-body").innerHTML=html;
+  document.getElementById("sched-modal").className="modal-overlay open";
+}
+
+function sbActRow(d,ai,sport,desc){
+  return'<div class="sb-act-row" id="sbact-'+d+'-'+ai+'">'
+    +'<select class="sb-sport-sel" id="sbsport-'+d+'-'+ai+'">'
+    +'<option value="run"'+(sport==="run"?" selected":"")+'>🏃 Correr</option>'
+    +'<option value="bike"'+(sport==="bike"?" selected":"")+'>🚴 Bici</option>'
+    +'<option value="swim"'+(sport==="swim"?" selected":"")+'>🏊 Natación</option>'
+    +'<option value="rest"'+(sport==="rest"?" selected":"")+'>😴 Descanso</option>'
+    +'</select>'
+    +'<input type="text" class="sb-desc-inp" id="sbdesc-'+d+'-'+ai+'" value="'+esc(desc||"")+'" placeholder="descripción (opcional)">'
+    +'<button class="sb-del" onclick="sbDelAct(\''+d+'\',\''+ai+'\')">×</button>'
+  +'</div>';
+}
+
+function sbAddAct(d){
+  var cont=document.getElementById("sbacts-"+d);
+  var addBtn=cont.querySelector(".sb-add-btn");
+  var ai=cont.querySelectorAll(".sb-act-row").length;
+  var div=document.createElement("div");
+  div.innerHTML=sbActRow(d,ai,"run","");
+  cont.insertBefore(div.firstElementChild,addBtn);
+}
+
+function sbDelAct(d,ai){
+  var el=document.getElementById("sbact-"+d+"-"+ai);
+  if(el)el.remove();
+}
+
+function saveSchedWeek(){
+  var sched=STORE.sched();
+  for(var i=0;i<7;i++){
+    var d=addDays(_sbWeekMon,i);
+    var acts=[];
+    var rows=document.querySelectorAll("#sbacts-"+d+" .sb-act-row");
+    rows.forEach(function(row){
+      var id=row.id.replace("sbact-"+d+"-","");
+      var sportEl=document.getElementById("sbsport-"+d+"-"+id);
+      var descEl=document.getElementById("sbdesc-"+d+"-"+id);
+      if(sportEl){acts.push({sport:sportEl.value,desc:descEl?descEl.value.trim():""});}
+    });
+    sched[d]=acts;
+  }
+  STORE.saveSched(sched);
+  closeSchedBuilder();
+  renderSchedule();
+  renderToday();
+}
+
+function closeSchedBuilder(){ document.getElementById("sched-modal").className="modal-overlay"; }
+
+// ── TEMPLATES ─────────────────────────────────────────────────────────────────
+// A template is: { id, name, days: [ {sport, desc}, ... ] } — always 7 days (Mon-Sun)
+var BUILT_IN_TEMPLATES = [
+  {
+    id: "builtin-18mayo",
+    name: "Semana 18–24 Mayo (importado)",
+    builtin: true,
+    days: [
+      { sport: "run",  desc: "Running Regenerativo — Rodaje suave de recuperación activa. Ritmo conversacional, baja intensidad." },
+      { sport: "swim", desc: "Natación + Gym — Sesión de piscina + entrenamiento de fuerza en sala." },
+      { sport: "swim", desc: "Natación + Gym — Sesión de piscina + entrenamiento de fuerza en sala." },
+      { sport: "run",  desc: "Running / Pasadas — Series y pasadas de velocidad. Trabajo de calidad e intensidad." },
+      { sport: "bike", desc: "Brick Triatlón — Ciclismo seguido de running. Transición T2." },
+      { sport: "run",  desc: "Fondo Running — Tirada larga de resistencia. Ritmo aeróbico sostenido." },
+      { sport: "bike", desc: "Bicicleta Anaeróbico — Trabajo de alta intensidad. Intervalos o subidas exigentes." }
+    ]
+  }
+];
+
+function getTpls(){
+  var builtin = BUILT_IN_TEMPLATES;
+  var custom = [];
+  try{ custom = JSON.parse(_get("tri-tpls")||"[]"); }catch(e){}
+  return builtin.concat(custom);
+}
+function saveTpls(arr){
+  // only save custom (non-builtin)
+  _set("tri-tpls", JSON.stringify(arr.filter(function(t){return !t.builtin;})));
+}
+
+var _activeTplId = null; // template being applied
+
+// ── MANAGER ──────────────────────────────────────────────────────────────────
+function openTemplateManager(){
+  renderTplManager();
+  document.getElementById("tpl-modal").className = "modal-overlay open";
+}
+function closeTplModal(){ document.getElementById("tpl-modal").className = "modal-overlay"; }
+
+function renderTplManager(){
+  var tpls = getTpls();
+  var dayNames = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+  var sportColors = { run:"var(--run)", bike:"var(--bike)", swim:"var(--swim)", rest:"var(--faint)" };
+  var sportIcons  = { run:"🏃", bike:"🚴", swim:"🏊", rest:"😴" };
+
+  if(!tpls.length){
+    document.getElementById("tpl-modal-body").innerHTML =
+      '<div class="empty-h">No hay plantillas todavía.<br>Creá una con el botón de abajo.</div>';
+    return;
+  }
+
+  var html = "";
+  tpls.forEach(function(t){
+    html += '<div style="background:var(--surf2);border-radius:var(--r);border:.5px solid var(--b1);margin-bottom:10px;overflow:hidden;">';
+    // header
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:.5px solid var(--b1);">'
+      +'<div style="flex:1;">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+esc(t.name)+'</div>'
+        +(t.builtin?'<div style="font-size:10px;color:var(--swim);margin-top:1px;">📄 Importado del PDF</div>':'')
+      +'</div>'
+      +'<button onclick="openTplApply(\''+t.id+'\')" style="padding:6px 12px;border-radius:var(--rs);border:none;background:var(--bike);color:#0b0f1a;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--body);">Aplicar</button>'
+      +(!t.builtin?'<button onclick="openTplEditor(\''+t.id+'\')" style="padding:6px 10px;border-radius:var(--rs);border:.5px solid var(--b2);background:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--body);margin-left:4px;">✏</button>':'')
+      +(!t.builtin?'<button onclick="deleteTpl(\''+t.id+'\')" style="padding:6px 10px;border-radius:var(--rs);border:.5px solid var(--b1);background:none;color:var(--faint);font-size:14px;cursor:pointer;margin-left:2px;">×</button>':'')
+    +'</div>';
+    // days strip
+    html += '<div style="display:flex;padding:8px 10px;gap:4px;">';
+    t.days.forEach(function(day, i){
+      var col = sportColors[day.sport] || "var(--faint)";
+      var ico = sportIcons[day.sport] || "·";
+      html += '<div style="flex:1;text-align:center;background:var(--surf3);border-radius:6px;padding:5px 2px;">'
+        +'<div style="font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.3px;">'+dayNames[i]+'</div>'
+        +'<div style="font-size:13px;margin:2px 0;">'+ico+'</div>'
+        +'<div style="width:6px;height:6px;border-radius:50%;background:'+col+';margin:0 auto;"></div>'
+      +'</div>';
+    });
+    html += '</div>';
+    // summary list
+    html += '<div style="padding:0 14px 10px;">';
+    t.days.forEach(function(day, i){
+      if(day.sport==="rest"&&!day.desc) return;
+      html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-top:.5px solid var(--b1);">'
+        +'<div style="font-size:10px;color:var(--faint);width:28px;flex-shrink:0;padding-top:1px;">'+dayNames[i]+'</div>'
+        +'<div style="width:4px;height:4px;border-radius:50%;background:'+(sportColors[day.sport]||"var(--faint)")+';flex-shrink:0;margin-top:5px;"></div>'
+        +'<div style="font-size:11px;color:var(--muted);line-height:1.4;">'+esc(day.desc||sportLabel(day.sport).replace(/^../,"").trim())+'</div>'
+      +'</div>';
+    });
+    html += '</div></div>';
+  });
+  document.getElementById("tpl-modal-body").innerHTML = html;
+}
+
+function deleteTpl(id){
+  if(!confirm("¿Eliminar esta plantilla?")) return;
+  var all = getTpls().filter(function(t){ return t.id !== id; });
+  saveTpls(all);
+  renderTplManager();
+}
+
+// ── EDITOR ────────────────────────────────────────────────────────────────────
+var _editingTplId = null;
+function openTplEditor(id){
+  _editingTplId = id;
+  var dayNames = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  var tpl = id ? getTpls().find(function(t){ return t.id===id; }) : null;
+  document.getElementById("tpl-editor-title").textContent = tpl ? "Editar: "+tpl.name : "Nueva plantilla";
+  var days = tpl ? tpl.days : [
+    {sport:"run",desc:""},{sport:"swim",desc:""},{sport:"bike",desc:""},
+    {sport:"run",desc:""},{sport:"rest",desc:""},{sport:"run",desc:""},{sport:"rest",desc:""}
+  ];
+  var sportOpts = function(sel){
+    return ['run','bike','swim','rest'].map(function(s){
+      return '<option value="'+s+'"'+(sel===s?" selected":"")+'>'+sportLabel(s)+'</option>';
+    }).join('');
+  };
+  var html = '<div style="margin-bottom:12px;">'
+    +'<label class="field-label">Nombre de la plantilla</label>'
+    +'<input type="text" class="field-input" id="tpl-ed-name" value="'+esc(tpl?tpl.name:"")+'\" placeholder="ej: Semana tipo A">'
+    +'</div>';
+  html += '<div style="font-size:10px;color:var(--faint);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px;">Definí deporte y descripción para cada día</div>';
+  days.forEach(function(day, i){
+    html += '<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:8px;">'
+      +'<div style="font-size:10px;color:var(--muted);width:32px;flex-shrink:0;padding-top:10px;">'+dayNames[i].slice(0,3)+'</div>'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:4px;">'
+        +'<select class="field-input" id="tpl-ed-sport-'+i+'" style="padding:7px 10px;font-size:12px;">'+sportOpts(day.sport)+'</select>'
+        +'<input type="text" class="field-input" id="tpl-ed-desc-'+i+'" value="'+esc(day.desc||"")+'" placeholder="descripción (opcional)" style="font-size:12px;padding:7px 10px;">'
+      +'</div>'
+    +'</div>';
+  });
+  document.getElementById("tpl-editor-body").innerHTML = html;
+  document.getElementById("tpl-editor-modal").className = "modal-overlay open";
+}
+
+function closeTplEditor(){ document.getElementById("tpl-editor-modal").className = "modal-overlay"; }
+
+function saveTplEditor(){
+  var name = (document.getElementById("tpl-ed-name")||{}).value||"";
+  name = name.trim();
+  if(!name){ alert("Escribí un nombre para la plantilla."); return; }
+  var days = [];
+  for(var i=0;i<7;i++){
+    var sportEl = document.getElementById("tpl-ed-sport-"+i);
+    var descEl  = document.getElementById("tpl-ed-desc-"+i);
+    days.push({ sport: sportEl?sportEl.value:"rest", desc: descEl?descEl.value.trim():"" });
+  }
+  var all = getTpls().filter(function(t){ return !t.builtin; }); // custom only
+  if(_editingTplId){
+    var idx = all.findIndex(function(t){ return t.id===_editingTplId; });
+    if(idx>-1){ all[idx].name=name; all[idx].days=days; }
+    else { all.push({id:_editingTplId, name:name, days:days}); }
+  } else {
+    all.push({ id: uid(), name: name, days: days });
+  }
+  saveTpls(all);
+  closeTplEditor();
+  renderTplManager();
+}
+
+// ── APPLY ────────────────────────────────────────────────────────────────────
+function openTplApply(id){
+  _activeTplId = id;
+  var tpl = getTpls().find(function(t){ return t.id===id; });
+  document.getElementById("tpl-apply-title").textContent = "Aplicar: "+esc(tpl?tpl.name:"plantilla");
+  // default to monday of current visible week
+  var today = todayISO();
+  var baseWeekMon = isoWeekStart(today);
+  var mon = addDays(baseWeekMon, schedWeekOffset*7);
+  document.getElementById("tpl-apply-date").value = mon;
+  updateApplyPreview();
+  document.getElementById("tpl-apply-modal").className = "modal-overlay open";
+}
+function closeTplApply(){ document.getElementById("tpl-apply-modal").className = "modal-overlay"; }
+
+function updateApplyPreview(){
+  var dateVal = document.getElementById("tpl-apply-date").value;
+  if(!dateVal){ document.getElementById("tpl-apply-preview").textContent="Elegí una fecha."; return; }
+  var mon = isoWeekStart(dateVal); // always snap to Monday
+  var tpl = _activeTplId ? getTpls().find(function(t){ return t.id===_activeTplId; }) : null;
+  var dayNames = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+  var mNames   = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  var sportIcons = { run:"🏃", bike:"🚴", swim:"🏊", rest:"😴" };
+  var html = "";
+  for(var i=0;i<7;i++){
+    var d = addDays(mon,i);
+    var parts = d.split("-");
+    var day = tpl ? tpl.days[i] : {sport:"run",desc:""};
+    html += '<div style="display:flex;gap:8px;align-items:baseline;padding:1px 0;">'
+      +'<span style="color:var(--faint);width:24px;font-size:10px;">'+dayNames[i]+'</span>'
+      +'<span style="color:var(--muted);font-size:10px;font-family:var(--mono);width:54px;">'+parseInt(parts[2])+" "+mNames[parseInt(parts[1])-1]+'</span>'
+      +'<span style="font-size:11px;">'+sportIcons[day.sport||"rest"]+'</span>'
+      +'<span style="font-size:11px;color:var(--muted);">'+esc((day.desc||sportLabel(day.sport||"rest").replace(/^../,"").trim()).slice(0,45))+'</span>'
+    +'</div>';
+  }
+  document.getElementById("tpl-apply-preview").innerHTML = html;
+}
+
+function applyTemplate(){
+  var dateVal = document.getElementById("tpl-apply-date").value;
+  if(!dateVal){ alert("Elegí una fecha."); return; }
+  var mon = isoWeekStart(dateVal);
+  var tpl = _activeTplId ? getTpls().find(function(t){ return t.id===_activeTplId; }) : null;
+  if(!tpl){ alert("Plantilla no encontrada."); return; }
+  var sched = STORE.sched();
+  var dayNames = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  for(var i=0;i<7;i++){
+    var d = addDays(mon,i);
+    var day = tpl.days[i];
+    if(day && day.sport !== "rest"){
+      sched[d] = [{ sport: day.sport, desc: day.desc||"" }];
+    } else if(day && day.sport === "rest"){
+      sched[d] = [{ sport: "rest", desc: day.desc||"Descanso" }];
+    }
+  }
+  STORE.saveSched(sched);
+  closeTplApply();
+  closeTplModal();
+  // navigate schedule view to that week
+  var today = todayISO();
+  var baseMon = isoWeekStart(today);
+  var targetMon = mon;
+  // calc offset in weeks
+  var diff = Math.round((new Date(targetMon) - new Date(baseMon)) / (7*24*3600*1000));
+  schedWeekOffset = diff;
+  renderSchedule();
+  renderToday();
+  showTab("schedule");
+  alert("✓ Plantilla aplicada a la semana del "+mon);
+}
+</script>
+</body>
+</html>
